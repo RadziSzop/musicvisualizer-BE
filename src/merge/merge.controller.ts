@@ -2,13 +2,11 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   UseInterceptors,
   UploadedFiles,
   Res,
 } from '@nestjs/common';
 import { MergeService } from './merge.service';
-import { MergeDto } from './dto/merge.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { multerStorage, sotrageDir } from 'src/utils/storage';
 import { MulterDiskUploadedFiles } from 'src/interfaces/files';
@@ -31,13 +29,10 @@ export class MergeController {
     ),
   )
   create(
-    @Body() createMergeDto: MergeDto,
     @UploadedFiles() files: MulterDiskUploadedFiles,
     @Res() res: Response,
   ) {
-    console.log(createMergeDto);
-
-    return this.mergeService.merge(createMergeDto, files, res);
+    return this.mergeService.merge(files, res);
   }
 
   @Get()
