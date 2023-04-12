@@ -11,7 +11,9 @@ async function bootstrap() {
       },
     }),
   );
-  app.enableCors();
+  app.enableCors({
+    origin: 'https://musicvisualizer-fe.vercel.app',
+  });
   await app.listen(3000);
 }
 bootstrap();
