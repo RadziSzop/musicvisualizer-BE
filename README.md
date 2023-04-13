@@ -31,9 +31,9 @@ yarn start
 ## TODO
 
 - [x] Merging audio with recorded visualization
-- [] Proper error handling
-- [] Auth module
-- [] Storing users visualizations in file store and letting them edit collections
+- [ ] Proper error handling
+- [ ] Auth module
+- [ ] Storing users visualizations in file store and letting them edit collections
 
 ## Made with:
 
