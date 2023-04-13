@@ -9,35 +9,44 @@ import * as path from 'path';
 @Injectable()
 export class MergeService {
   async merge(files: MulterDiskUploadedFiles, res: Response) {
-    try {
-      const video = files?.video[0] ?? null;
-      const audio = files?.audio[0] ?? null;
-      const relativeVideoPath = './storage/temp/' + video.filename;
-      const relativeAudioPath = './storage/temp/' + audio.filename;
-      const args = ['-c:v', 'copy', '-af', 'apad', '-shortest'];
+    const video = files?.video?.[0] ?? null;
+    const audio = files?.audio?.[0] ?? null;
+    if (video === null || audio === null) {
+      res.statusCode = 400;
+      res.json({ error: 'Audio and video files are required' });
+    } else {
       const outputFilename = uuid();
-      const command = ffmpeg()
-        .input(relativeVideoPath)
-        .input(relativeAudioPath)
-        .outputOptions(args)
-        .output(`./storage/output/${outputFilename}.mp4`);
-      await new Promise((resolve, reject) => {
-        command.on('end', () => {
-          console.log('Finished processing video');
-          resolve(null);
+      try {
+        const relativeVideoPath = './storage/temp/' + video.filename;
+        const relativeAudioPath = './storage/temp/' + audio.filename;
+        const args = ['-c:v', 'copy', '-af', 'apad', '-shortest'];
+        const command = ffmpeg()
+          .input(relativeVideoPath)
+          .input(relativeAudioPath)
+          .outputOptions(args)
+          .output(`./storage/output/${outputFilename}.mp4`);
+        await new Promise((resolve) => {
+          command.on('end', () => {
+            resolve('Success');
+          });
+          command.on('error', () => {
+            throw new Error();
+          });
+          command.run();
         });
-        command.on('error', (error) => {
-          reject(error);
+        res.sendFile(`${outputFilename}.mp4`, {
+          root: path.join(sotrageDir(), 'output'),
         });
-        command.run();
-      });
-      fs.unlink(video.path);
-      fs.unlink(audio.path);
-      res.sendFile(`${outputFilename}.mp4`, {
-        root: path.join(sotrageDir(), 'output'),
-      });
-    } catch (error) {
-      res.json({ error: 'Error occured' });
+        await fs.unlink(video.path);
+        await fs.unlink(audio.path);
+        await fs.unlink(`./storage/output/${outputFilename}.mp4`);
+      } catch (error) {
+        res.statusCode = 503;
+        res.json({ error: 'Server error, try again later' });
+        fs.unlink(video.path).catch();
+        fs.unlink(audio.path).catch();
+        fs.unlink(`./storage/output/${outputFilename}.mp4`).catch();
+      }
     }
   }
 }
